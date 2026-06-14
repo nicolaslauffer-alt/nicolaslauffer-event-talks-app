@@ -9,7 +9,7 @@ let currentComposeIds = [];
 let activeTone = 'standard';
 
 // DOM Elements
-const themeToggle = document.getElementById('theme-toggle');
+const themeSlider = document.getElementById('theme-slider');
 const refreshBtn = document.getElementById('refresh-btn');
 const refreshSpinner = document.getElementById('refresh-spinner');
 const btnText = refreshBtn.querySelector('.btn-text');
@@ -64,32 +64,18 @@ function init() {
 function setupTheme() {
     const savedTheme = localStorage.getItem('theme') || 'dark';
     document.documentElement.setAttribute('data-theme', savedTheme);
-    updateThemeIcon(savedTheme);
+    themeSlider.checked = savedTheme === 'light';
 }
 
-function toggleTheme() {
-    const currentTheme = document.documentElement.getAttribute('data-theme');
-    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+function handleThemeChange(e) {
+    const newTheme = e.target.checked ? 'light' : 'dark';
     document.documentElement.setAttribute('data-theme', newTheme);
     localStorage.setItem('theme', newTheme);
-    updateThemeIcon(newTheme);
-}
-
-function updateThemeIcon(theme) {
-    const darkIcon = themeToggle.querySelector('.theme-icon-dark');
-    const lightIcon = themeToggle.querySelector('.theme-icon-light');
-    if (theme === 'dark') {
-        darkIcon.style.display = 'block';
-        lightIcon.style.display = 'none';
-    } else {
-        darkIcon.style.display = 'none';
-        lightIcon.style.display = 'block';
-    }
 }
 
 // Event Listeners Setup
 function setupEventListeners() {
-    themeToggle.addEventListener('click', toggleTheme);
+    themeSlider.addEventListener('change', handleThemeChange);
     
     refreshBtn.addEventListener('click', () => fetchNotes(true));
     

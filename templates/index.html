@@ -36,10 +36,14 @@
             </div>
             
             <div class="header-actions">
-                <button id="theme-toggle" class="icon-btn" title="Toggle Theme" aria-label="Toggle Theme">
-                    <span class="material-symbols-outlined theme-icon-dark">light_mode</span>
-                    <span class="material-symbols-outlined theme-icon-light" style="display: none;">dark_mode</span>
-                </button>
+                <div class="theme-switch-wrapper" title="Toggle Light/Dark Theme">
+                    <span class="material-symbols-outlined switch-icon dark">dark_mode</span>
+                    <label class="theme-switch" for="theme-slider">
+                        <input type="checkbox" id="theme-slider" aria-label="Toggle Theme Color Scheme" />
+                        <span class="slider round"></span>
+                    </label>
+                    <span class="material-symbols-outlined switch-icon light">light_mode</span>
+                </div>
                 
                 <button id="refresh-btn" class="primary-btn">
                     <span class="material-symbols-outlined spinner" id="refresh-spinner">sync</span>
