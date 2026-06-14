@@ -30,6 +30,7 @@ const statSyncedVal = document.querySelector('#stat-synced .stat-value');
 
 // Selection Elements
 const toggleSelectModeBtn = document.getElementById('toggle-select-mode-btn');
+const exportCsvBtn = document.getElementById('export-csv-btn');
 const selectionSummaryContainer = document.getElementById('selection-summary-container');
 const selectedCountText = document.getElementById('selected-count');
 const tweetSelectedBtn = document.getElementById('tweet-selected-btn');
@@ -118,6 +119,7 @@ function setupEventListeners() {
     
     // Multi-Select Event Listeners
     toggleSelectModeBtn.addEventListener('click', toggleMultiSelectMode);
+    exportCsvBtn.addEventListener('click', exportToCSV);
     
     clearSelectedBtn.addEventListener('click', clearSelection);
     
@@ -356,6 +358,10 @@ function renderNoteCard(note) {
                     </div>
                     
                     <div class="card-actions">
+                        <button class="copy-card-btn" data-id="${note.id}" title="Copy plain text to clipboard">
+                            <span class="material-symbols-outlined">content_copy</span>
+                            <span>Copy</span>
+                        </button>
                         <button class="tweet-single-btn" data-id="${note.id}">
                             <span class="material-symbols-outlined">campaign</span>
                             <span>Tweet</span>
@@ -380,6 +386,12 @@ function bindCardEvents() {
         card.querySelector('.tweet-single-btn').addEventListener('click', (e) => {
             e.stopPropagation(); // Avoid triggering card click selection
             openTweetComposer([id]);
+        });
+        
+        // Copy card button handler
+        card.querySelector('.copy-card-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            copySingleCardText(id, e.currentTarget);
         });
         
         // Card click handler for multi-select
@@ -755,6 +767,79 @@ function formatTimeAgo(date) {
     interval = Math.floor(seconds / 60);
     if (interval >= 1) return interval + "m ago";
     return "just now";
+}
+
+// Helper: Copy individual card text content to clipboard
+function copySingleCardText(id, btnElement) {
+    const note = releaseNotes.find(n => n.id === id);
+    if (!note) return;
+    
+    const textToCopy = `[${note.type}] (${note.date})\n${note.content_text}\n\nRead more: ${note.link}`;
+    
+    navigator.clipboard.writeText(textToCopy).then(() => {
+        const label = btnElement.querySelector('span:not(.material-symbols-outlined)');
+        const icon = btnElement.querySelector('.material-symbols-outlined');
+        
+        btnElement.classList.add('copied');
+        if (label) label.textContent = 'Copied!';
+        if (icon) icon.textContent = 'done';
+        
+        showToast('Card text copied to clipboard!');
+        
+        setTimeout(() => {
+            btnElement.classList.remove('copied');
+            if (label) label.textContent = 'Copy';
+            if (icon) icon.textContent = 'content_copy';
+        }, 2000);
+    }).catch(err => {
+        console.error('Failed to copy: ', err);
+        showToast('Failed to copy text.');
+    });
+}
+
+// Helper: Export currently filtered notes to CSV
+function exportToCSV() {
+    const filteredNotes = releaseNotes.filter(note => {
+        const matchesType = currentFilterType === 'ALL' || note.type.toUpperCase() === currentFilterType;
+        const matchesQuery = !searchQuery || 
+            note.content_text.toLowerCase().includes(searchQuery) ||
+            note.type.toLowerCase().includes(searchQuery) ||
+            note.date.toLowerCase().includes(searchQuery);
+        return matchesType && matchesQuery;
+    });
+    
+    if (filteredNotes.length === 0) {
+        showToast('No notes available to export.');
+        return;
+    }
+    
+    const headers = ['Date', 'Category', 'Direct Link', 'Update Plain Text'];
+    
+    const rows = filteredNotes.map(note => {
+        const dateEsc = `"${note.date.replace(/"/g, '""')}"`;
+        const typeEsc = `"${note.type.replace(/"/g, '""')}"`;
+        const linkEsc = `"${note.link.replace(/"/g, '""')}"`;
+        const textEsc = `"${note.content_text.replace(/"/g, '""')}"`;
+        return [dateEsc, typeEsc, linkEsc, textEsc].join(',');
+    });
+    
+    const csvContent = '\uFEFF' + [headers.join(','), ...rows].join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    
+    const filterLabel = currentFilterType.toLowerCase();
+    const dateStr = new Date().toISOString().slice(0, 10);
+    link.setAttribute('download', `bigquery_release_notes_${filterLabel}_${dateStr}.csv`);
+    
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    showToast(`Successfully exported ${filteredNotes.length} updates to CSV!`);
 }
 
 // Run App

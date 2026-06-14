@@ -729,8 +729,8 @@ a:hover {
     gap: 0.5rem;
 }
 
-/* Action button for tweeting a single card */
-.tweet-single-btn {
+/* Action buttons for cards (Tweet and Copy) */
+.tweet-single-btn, .copy-card-btn {
     display: flex;
     align-items: center;
     gap: 0.35rem;
@@ -745,14 +745,26 @@ a:hover {
     transition: all var(--transition-fast);
 }
 
+.tweet-single-btn span, .copy-card-btn span {
+    font-size: 16px;
+}
+
 .tweet-single-btn:hover {
     background-color: #1d9bf0;
     border-color: #1d9bf0;
     color: #ffffff;
 }
 
-.tweet-single-btn span {
-    font-size: 16px;
+.copy-card-btn:hover {
+    background-color: var(--accent);
+    border-color: var(--accent);
+    color: #ffffff;
+}
+
+.copy-card-btn.copied {
+    background-color: #10b981 !important;
+    border-color: #10b981 !important;
+    color: #ffffff !important;
 }
 
 /* Rendered HTML inside Card Body */
